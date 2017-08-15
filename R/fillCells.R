@@ -6,8 +6,10 @@ lglToZero <- function(x) {
   ifelse(x == TRUE, 1, 0)
 }
 
-fillBlank <- function(x) {
-  if (is.character(x)) {
-    ifelse(nchar(x) == 0, NA, x)
+fillBlank <- function(x, pattern) {
+  if (!is.character(x)) {
+    stop('column(s) are not of class character')
+  } else {
+    ifelse(x %in% c('', ' '), NA, x)
   }
 }
