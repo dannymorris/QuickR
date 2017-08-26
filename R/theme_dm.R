@@ -64,7 +64,7 @@ theme_dm <- function(base_size = 11, base_family = "") {
       #----------------------------------------
       panel.background = element_rect(fill="#ffffff", colour=NA),
       # panel.background = element_blank(),
-      panel.border = element_rect(size = 0.75, fill = NA, colour = "gray50"),
+      panel.border = element_rect(size = 0.5, fill = NA, colour = "gray50"),
       # panel.border = element_blank(),
       panel.spacing = unit(0.5, "lines"),
       # panel.spacing = unit(1, "lines"),
