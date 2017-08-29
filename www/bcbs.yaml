@@ -1,6 +1,0 @@
-html_document:
-  theme: lumen
-  toc: true
-  toc_float: true
-  fig_height: 4
-  fig_width: 5
