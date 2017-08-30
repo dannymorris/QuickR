@@ -16,35 +16,6 @@
 
 theme_dm <- function(base_size = 11, base_family = "") {
 
-  #----------------------------------------
-  #   geom defaults.
-  #   FYI not all of these work (e.g. smooth---why?)
-  #----------------------------------------
-
-  update_geom_defaults("point", list(shape = 1,
-                                     colour = "gray20",
-                                     size = 2,
-                                     stroke = 1))
-
-  update_geom_defaults("line", list(colour = "gray50"))
-
-  update_geom_defaults("bar", list(fill = "gray50",
-                                   color = "gray20"))
-
-  update_geom_defaults("density", list(fill = "gray80",
-                                       color = "gray50",
-                                       alpha = 0.75))
-
-  update_geom_defaults("pointrange", list(colour = "gray50"))
-
-  update_geom_defaults("vline", list(colour = "gray50"))
-
-  update_geom_defaults("hline", list(colour = "gray50"))
-
-  update_geom_defaults("smooth", list(fill = "gray50",
-                                      color = "gray50",
-                                      se = F))
-
   update_geom_defaults("ribbon", list(fill = "gray80",
                                       color = NULL,
                                       alpha = 0.5))
@@ -117,3 +88,8 @@ theme_dm <- function(base_size = 11, base_family = "") {
     )
 
 }
+
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(fill = Species)) +
+  theme_dm()
