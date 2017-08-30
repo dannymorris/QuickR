@@ -20,7 +20,7 @@ theme_dm <- function(base_size = 11, base_family = "") {
                                       color = NULL,
                                       alpha = 0.5))
 
-  update_geom_defaults("text", list(colour = "gray50",
+  update_geom_defaults("text", list(colour = "gray30",
                                     size = 3))
 
 
@@ -59,10 +59,13 @@ theme_dm <- function(base_size = 11, base_family = "") {
       title = element_text(size = rel(1),
                            vjust = 1.2,
                            # family = "Source Sans Pro Semibold",
-                           color = "gray40"),
+                           color = "gray25"),
+      # subtitle = element_text(size = rel(0.8),
+      #                         vjust = 1.2,
+      #                         color = "gray40"),
       axis.title = element_text(size = rel(0.9),
                                 # family = "Source Sans Pro Semibold",
-                                color = "gray50"),
+                                color = "gray25"),
       axis.title.x = element_text(margin = margin(t = 10, b = 10)),
       # axis.title.y = element_text(margin = margin(r = 10)),
 
@@ -81,7 +84,7 @@ theme_dm <- function(base_size = 11, base_family = "") {
       #   legends
       #----------------------------------------
       legend.background = element_rect(color = "white"),
-      legend.title = element_text(size = rel(0.8), color = "gray50"),
+      legend.title = element_text(size = rel(0.8), color = "gray25"),
       legend.key = element_blank(),
       legend.text = element_text(size = rel(0.8), color = "gray50")
 
@@ -89,3 +92,8 @@ theme_dm <- function(base_size = 11, base_family = "") {
 
 }
 
+# ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+#   geom_point(aes(fill = Species), pch = 21, size = 2) +
+#   labs(title = "My Plot",
+#        subtitle = "My subtitles kk") +
+#   theme_dm()
