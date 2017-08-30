@@ -89,7 +89,3 @@ theme_dm <- function(base_size = 11, base_family = "") {
 
 }
 
-
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
-  geom_point(aes(fill = Species)) +
-  theme_dm()
