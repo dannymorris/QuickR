@@ -1,3 +1,3 @@
 # QuickR Package
 
-This package is dedicated to developing a suite of functions that simplify "business programming"
+This package contains various functions for fulfilling recurring yet simple tasks
