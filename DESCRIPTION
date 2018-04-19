@@ -4,9 +4,7 @@ Title: A lightweight package with simplified functions for commonly used tasks r
 Version: 0.1.0
 Author: Danny Morris
 Maintainer: drmorris87@outlook.com
-Description: Bringing together a collection of functions and methods into a single package brings organization
-to your work. Writing your own functions and rewriting existing code reinforces your understanding of code
-your work. Many of the concepts in this project are not new, but rather written for simplicity and applicability 
+Description: Bringing together a collection of functions and methods into a single package brings organization to your work. Writing your own functions and rewriting existing code reinforces your understanding of code your work. Many of the concepts in this project are not new, but rather written for simplicity and applicability 
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
