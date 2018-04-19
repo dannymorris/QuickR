@@ -72,13 +72,8 @@ bivbox<-function(a, d = 7)
   #a is data matrix
   #d is constant(usually 7)
   p <- length(a[1,  ])
-  if (method == "robust") {
-    param <- biweight(a[, 1:2]); m1 <- param[1]; m2 <- param[2]
-    s1 <- param[3]; s2 <- param[4]; r <- param[5]
-  } else {
-    m1 <- mean(a[, 1]); m2 <- mean(a[, 2]);
-    s1 <- sqrt(var(a[, 1])); s2 <- sqrt(var(a[, 2])); r <- cor(a[, 1:2])[1, 2]
-  }
+  param <- biweight(a[, 1:2]); m1 <- param[1]; m2 <- param[2]
+  s1 <- param[3]; s2 <- param[4]; r <- param[5]
   x <- (a[, 1] - m1)/s1; y <- (a[, 2] - m2)/s2
   e <- sqrt((x * x + y * y - 2 * r * x * y)/(1 - r * r))
   e2 <- e * e; em <- median(e); emax <- max(e[e2 < d * em * em])
