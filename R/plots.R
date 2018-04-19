@@ -112,4 +112,4 @@ bivbox<-function(a, d = 7)
 # Use it to create a bivariate boxplot of HS Graduation Rate and Income:
 # The regular method:
 
-bivbox(cbind(Income, HSGrad), xlab = "Income", ylab = "HSGrad", method ="O")
+
