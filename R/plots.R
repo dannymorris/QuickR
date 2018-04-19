@@ -67,7 +67,7 @@ biweight<-function(a,const1=9,const2=36,err=0.0001) {
 # Copy Everitt's bivbox function:
 ######################
 #####
-bivbox<-function(a, d = 7)
+bivbox<-function(a, d = 7, alpha = 1)
 {
   #a is data matrix
   #d is constant(usually 7)
@@ -88,7 +88,7 @@ bivbox<-function(a, d = 7)
   maxy <- max(c(a[, 2], yp, ypp, y1, y2)); miny <- min(c(a[, 2], yp, ypp, y1, y2))
   library(ggplot2)
   ggplot(as.data.frame(a), aes(x = a[,1], y = a[,2])) +
-    geom_point() +
+    geom_point(alpha = alpha) +
     geom_path(aes(x=xp, y=yp, group=1), data = data.frame(xp, yp), lty=2) +
     geom_path(aes(x=xpp, y=ypp, group=1), data = data.frame(xpp, ypp), lty=2) +
     geom_segment(aes(x=minxl, y=y1, xend = maxxl, yend=y2),
