@@ -67,18 +67,13 @@ biweight<-function(a,const1=9,const2=36,err=0.0001) {
 # Copy Everitt's bivbox function:
 ######################
 #####
-bivbox<-function(a, d = 7)
+bivbox<-function(a, d = 7, alpha = 1)
 {
   #a is data matrix
   #d is constant(usually 7)
   p <- length(a[1,  ])
-  if (method == "robust") {
-    param <- biweight(a[, 1:2]); m1 <- param[1]; m2 <- param[2]
-    s1 <- param[3]; s2 <- param[4]; r <- param[5]
-  } else {
-    m1 <- mean(a[, 1]); m2 <- mean(a[, 2]);
-    s1 <- sqrt(var(a[, 1])); s2 <- sqrt(var(a[, 2])); r <- cor(a[, 1:2])[1, 2]
-  }
+  param <- biweight(a[, 1:2]); m1 <- param[1]; m2 <- param[2]
+  s1 <- param[3]; s2 <- param[4]; r <- param[5]
   x <- (a[, 1] - m1)/s1; y <- (a[, 2] - m2)/s2
   e <- sqrt((x * x + y * y - 2 * r * x * y)/(1 - r * r))
   e2 <- e * e; em <- median(e); emax <- max(e[e2 < d * em * em])
@@ -93,7 +88,7 @@ bivbox<-function(a, d = 7)
   maxy <- max(c(a[, 2], yp, ypp, y1, y2)); miny <- min(c(a[, 2], yp, ypp, y1, y2))
   library(ggplot2)
   ggplot(as.data.frame(a), aes(x = a[,1], y = a[,2])) +
-    geom_point() +
+    geom_point(alpha = alpha) +
     geom_path(aes(x=xp, y=yp, group=1), data = data.frame(xp, yp), lty=2) +
     geom_path(aes(x=xpp, y=ypp, group=1), data = data.frame(xpp, ypp), lty=2) +
     geom_segment(aes(x=minxl, y=y1, xend = maxxl, yend=y2),
@@ -134,6 +129,10 @@ bivden<-function(x, y, ngridx = 30, ngridy = 30, constant.x = 1, constant.y = 1)
 # Use it to create a bivariate density of HS Graduation Rate and Income,
 # and then plot it with the persp function:
 
+<<<<<<< HEAD
 den1 <- bivden(Income, HS.Grad)
 persp(den1$seqx, den1$seqy, den1$den, xlab="Income", ylab="HSGrad",
       zlab="Density", lwd=2, ticktype="detailed", theta=35)
+=======
+
+>>>>>>> f2d6c105264364790285b6f17daf047aab770026
