@@ -129,10 +129,3 @@ bivden<-function(x, y, ngridx = 30, ngridy = 30, constant.x = 1, constant.y = 1)
 # Use it to create a bivariate density of HS Graduation Rate and Income,
 # and then plot it with the persp function:
 
-<<<<<<< HEAD
-den1 <- bivden(Income, HS.Grad)
-persp(den1$seqx, den1$seqy, den1$den, xlab="Income", ylab="HSGrad",
-      zlab="Density", lwd=2, ticktype="detailed", theta=35)
-=======
-
->>>>>>> f2d6c105264364790285b6f17daf047aab770026
