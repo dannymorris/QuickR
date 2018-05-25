@@ -71,3 +71,7 @@ exact_knn <- function(data, d=NULL, ids, k) {
     mutate(knn = row_number()) %>%
     filter(knn %in% k)
 }
+
+harmonic_mean <- function(x, ...) {
+  1/mean(1/x, ...)
+}
