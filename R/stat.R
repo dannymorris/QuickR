@@ -32,7 +32,7 @@ LPF_outlier_score <- function(input_matrix, returns = 'scores', scale = TRUE,
   }
 }
 
-exact_knn <- function(data, d=NULL, ids, k) {
+nearest_neighbors <- function(data, d=NULL, ids, k) {
 
   require(dplyr)
 
