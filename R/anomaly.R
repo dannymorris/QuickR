@@ -1,6 +1,7 @@
 LPF_outlier_score <- function(input_matrix, returns = 'scores', scale = TRUE,
                               error_agg_function = 'sum') {
-  #input_matrix <- iris[,-5]
+
+  input_matrix <- as.matrix(input_matrix)
   # prepare loop - N iterations
   n_cols <- ncol(input_matrix)
   # zero matrix - fill cols with errors[,i]
@@ -8,7 +9,7 @@ LPF_outlier_score <- function(input_matrix, returns = 'scores', scale = TRUE,
                          nrow = nrow(input_matrix))
   # loop through each col and predict from the rest
   for (i in 1:n_cols) {
-    linreg <- lm(input_matrix[,i] ~ ., data = input_matrix)
+    linreg <- lm(input_matrix[,i] ~ ., data = data.frame(input_matrix))
     error_matrix[,i] <- linreg$residuals
   }
   # aggregate residuals
