@@ -1,10 +1,13 @@
+
 ALSO <- function(data, method='rf', cv=FALSE, folds=NULL) {
 
   require(randomForest)
   require(dplyr)
+  require(caret)
 
   data <- data %>%
-    mutate_if(is.character, as.factor)
+    mutate_if(is.character, as.factor) %>%
+    data.frame()
 
   # prepare loop - N iterations
   n_cols <- ncol(data)
@@ -53,7 +56,7 @@ ALSO <- function(data, method='rf', cv=FALSE, folds=NULL) {
 
         X_train <- as.matrix(data[-k_folds[[j]], -i])
         Y_train <- data[-k_folds[[j]], i]
-        X_test <- data[k_folds[[j]], -i]
+        X_test <- as.matrix(data[k_folds[[j]], -i])
         Y_test <- data[k_folds[[j]], i]
 
         # random forest
@@ -71,7 +74,7 @@ ALSO <- function(data, method='rf', cv=FALSE, folds=NULL) {
         if (method == 'lm') {
           model_df <- data.frame(X_train, Y_train)
           fit <- lm(Y_train ~ ., data=model_df)
-          oos_predict <- predict(fit, newdata = X_test)
+          oos_predict <- predict(fit, newdata = data.frame(X_test))
           oos_sq_error <- (oos_predict - Y_test)^2
         }
 
@@ -134,5 +137,8 @@ nearest_neighbors <- function(data, d=NULL, ids, k) {
     mutate(knn = row_number()) %>%
     filter(knn %in% k)
 }
+
+df <- matrix(rnorm(1000), ncol=10) %>%
+  tbl_df()
 
 
