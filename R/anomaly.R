@@ -138,7 +138,3 @@ nearest_neighbors <- function(data, d=NULL, ids, k) {
     filter(knn %in% k)
 }
 
-df <- matrix(rnorm(1000), ncol=10) %>%
-  tbl_df()
-
-
