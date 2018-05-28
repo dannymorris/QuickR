@@ -1,27 +1,28 @@
 
-ALSO <- function(data, method='rf', cv=FALSE, folds=NULL) {
+ALSO <- function(data, method, cv=FALSE, folds=NULL) {
 
-  require(randomForest)
-  require(dplyr)
   require(caret)
 
-  data <- data %>%
-    mutate_if(is.character, as.factor) %>%
-    data.frame()
+  # make data a data.frame
+  data_df <- if (!('data.frame' %in% class(data))) {
+    data.frame(data)
+  } else data
 
-  # prepare loop - N iterations
+  # characters to factors
+  character_vars <- lapply(data_df, class) == "character"
+  iris[, character_vars] <- lapply(iris[character_vars], as.factor)
+
+  # prepare loop over all q variables
   n_cols <- ncol(data)
-  # zero matrix - fill cols with errors[,i]
+
+  # N x q error matrix
   error_matrix <- matrix(ncol = ncol(data),
                          nrow = nrow(data))
 
-  rmse_mat <- matrix(0, ncol=ncol(data), nrow=1)
+  # 1 x q rmse matrix
+  rmse_mat <- matrix(ncol=ncol(data), nrow=1)
 
-  if (method == 'lm' & cv == FALSE) {
-    message("cross validation set to TRUE for method='lm'")
-  }
-  cv <- ifelse(method == 'rf', cv, TRUE)
-
+  # create variable-wise k-fold cv prediction error matrix
   if (cv==TRUE) {
     cv_error_mat <- matrix(ncol=1, nrow=nrow(data))
     if(is.null(folds)) {
@@ -35,63 +36,67 @@ ALSO <- function(data, method='rf', cv=FALSE, folds=NULL) {
   # loop through each col and predict from the rest
   for (i in 1:n_cols) {
 
-    # no CV (random forest only)
+    # if no CV
     if (cv==FALSE) {
-      X <- as.matrix(data[, -i])
+      # prepare model df
+      X <- data[, -i]
       Y <- data[, i]
-      fit <- randomForest(x=X, y=Y)
+      model_df <- data.frame(X,Y)
+      # prepare formula
+      f <- as.formula(paste("Y~", paste(colnames(X), collapse="+")))
+      # call method with formula and data args
+      fit <- do.call(method, list(formula=f, data=model_df))
+      # get prediction errors
       if (class(Y) == 'factor') {
         sq_error <- (as.numeric(fit$predicted) - as.numeric(Y))^2
       } else {
-        sq_error <- (fit$predicted - Y)^2
+        sq_error <- (predict(fit) - Y)^2
       }
+      # population error matrix and rmse matrix
       error_matrix[,i] <- sq_error
       rmse_mat[,i] <- mean(sq_error)
 
     } else {
 
       # CV
-      # each observation gets one out of sample prediction
+      # each observation gets out of sample prediction
       for (j in 1:length(k_folds)) {
-
-        X_train <- as.matrix(data[-k_folds[[j]], -i])
+        # prepare train and test splits
+        X_train <- data[-k_folds[[j]], -i]
         Y_train <- data[-k_folds[[j]], i]
-        X_test <- as.matrix(data[k_folds[[j]], -i])
+        X_test <- data[k_folds[[j]], -i]
         Y_test <- data[k_folds[[j]], i]
-
-        # random forest
-        if (method == 'rf') {
-          fit <- randomForest(x=X_train, y=Y_train)
-          oos_predict <- predict(fit, newdata = X_test)
-          if (class(Y) == 'factor') {
-            oos_sq_error <- (as.numeric(oos_predict) - as.numeric(Y_test))^2
-          } else {
-            oos_sq_error <- (oos_predict - Y_test)^2
-          }
-        }
-
-        # linear regression
-        if (method == 'lm') {
-          model_df <- data.frame(X_train, Y_train)
-          fit <- lm(Y_train ~ ., data=model_df)
-          oos_predict <- predict(fit, newdata = data.frame(X_test))
+        # prepare model df
+        model_df <- data.frame(X_train, Y_train)
+        # prepare formula
+        f <- as.formula(paste("Y_train~", paste(colnames(X_train), collapse="+")))
+        # call method with formula and data arguments
+        fit <- do.call(method, list(formula=f, data=model_df))
+        # get out of sample predictions
+        oos_predict <- predict(fit, newdata = X_test)
+        if (class(Y_train) == 'factor') {
+          oos_sq_error <- (as.numeric(oos_predict) - as.numeric(Y_test))^2
+        } else {
           oos_sq_error <- (oos_predict - Y_test)^2
         }
-
+        # populate cv prediction error
         cv_error_mat[k_folds[[j]],] <- oos_sq_error # get errors for jth variable
+
       }
+      # population error matrix and rmse matrix
       error_matrix[,i] <- cv_error_mat
       rmse_mat[,i] <- mean(cv_error_mat)
     }
   }
-
+  # adjusted rmse if > 1 then 1 else rmse
   bounded_rmse <- ifelse(rmse_mat > 1, 1, rmse_mat)
+  # compute feature weights as 1-adjusted rmse
   feature_weights <- 1-bounded_rmse
-
+  # compute outlier scores
   scores <- apply(error_matrix, 1, function(x) {
-    sum(x*feature_weights)
+    sum(x*feature_weights, na.rm=T)
   })
-
+  # output
   list(scores=scores,
        error_matrix=error_matrix,
        rmse_mat=rmse_mat,
