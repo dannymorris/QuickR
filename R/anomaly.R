@@ -1,5 +1,20 @@
 
-ALSO <- function(data, method, cv=FALSE, folds=NULL) {
+ALSO <- function(data, method, cv=FALSE, folds=NULL, return_list=T, ...) {
+
+  # Attribute-wise Learning for Scores Outliers (ALSO) is an unsupervised
+  # outlier detection technique for locating outliers among a set of correlated
+  # observations. The technique assumes that correlated features can be used to
+  # predict one another in an attempt to locate points that deviate from the correlation
+  # structure. The predictability of a feature determines its weight in the scoring process.
+  # Features that can be predicted with high accuracy are weighted more heavily than
+  # features with low predictability. Weights can be defined as 1 - min(1, RMSE).
+  # If the root mean squared error (RMSE) of a feature model exceeds 1, the weight of the
+  # dependent feature defaults to 0 since the RMSE for a predictive model which only
+  # predicts the mean of the dependent variable for all data points is always 1.
+  # Otherwise, the feature weight is the RMSE of its own model. Final scoring is
+  # accomplished by summing the weighed scores. Extreme-value analysis can then
+  # be applied to locate outliers that deviate from the correlation structure of
+  # the data set.
 
   require(caret)
 
@@ -13,23 +28,23 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL) {
   iris[, character_vars] <- lapply(iris[character_vars], as.factor)
 
   # prepare loop over all q variables
-  n_cols <- ncol(data)
+  n_cols <- ncol(data_df)
 
   # N x q error matrix
-  error_matrix <- matrix(ncol = ncol(data),
-                         nrow = nrow(data))
+  error_matrix <- matrix(ncol = ncol(data_df),
+                         nrow = nrow(data_df))
 
   # 1 x q rmse matrix
-  rmse_mat <- matrix(ncol=ncol(data), nrow=1)
+  rmse_mat <- matrix(ncol=ncol(data_df), nrow=1)
 
   # create variable-wise k-fold cv prediction error matrix
   if (cv==TRUE) {
-    cv_error_mat <- matrix(ncol=1, nrow=nrow(data))
+    cv_error_mat <- matrix(ncol=1, nrow=nrow(data_df))
     if(is.null(folds)) {
       message("k_folds not supplided. default to 5")
-      k_folds <- createFolds(1:nrow(data), k=5)
+      k_folds <- createFolds(1:nrow(data_df), k=5)
     } else {
-      k_folds <- createFolds(1:nrow(data), k=folds)
+      k_folds <- createFolds(1:nrow(data_df), k=folds)
     }
   }
 
@@ -39,13 +54,20 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL) {
     # if no CV
     if (cv==FALSE) {
       # prepare model df
-      X <- data[, -i]
-      Y <- data[, i]
+      #X <- ifelse(n_cols == 2, data.frame(X=data_df[, -i]), data_df[,-i])
+      if (n_cols == 2) {
+        X <- data.frame(X=data_df[,-i])
+        Y <- data.frame(Y=data_df[, i])
+      } else {
+        X <- data_df[,-i]
+        Y <- data_df[, i]
+      }
+      Y <- ifelse(n_cols == 2, data.frame(X=data_df[, i]), data_df[,i])
       model_df <- data.frame(X,Y)
       # prepare formula
       f <- as.formula(paste("Y~", paste(colnames(X), collapse="+")))
-      # call method with formula and data args
-      fit <- do.call(method, list(formula=f, data=model_df))
+      # call method with formula and data_df args
+      fit <- do.call(method, list(formula=f, data=model_df, ...))
       # get prediction errors
       if (class(Y) == 'factor') {
         sq_error <- (as.numeric(fit$predicted) - as.numeric(Y))^2
@@ -54,7 +76,7 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL) {
       }
       # population error matrix and rmse matrix
       error_matrix[,i] <- sq_error
-      rmse_mat[,i] <- mean(sq_error)
+      rmse_mat[,i] <- mean(sq_error, na.rm=T)
 
     } else {
 
@@ -62,14 +84,27 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL) {
       # each observation gets out of sample prediction
       for (j in 1:length(k_folds)) {
         # prepare train and test splits
-        X_train <- data[-k_folds[[j]], -i]
-        Y_train <- data[-k_folds[[j]], i]
-        X_test <- data[k_folds[[j]], -i]
-        Y_test <- data[k_folds[[j]], i]
+        X <- data.frame(X=data_df[,-i])
+        Y <- data.frame(Y=data_df[, i])
+        if (n_cols == 2) {
+          X_train <- data.frame(X_train = data_df[-k_folds[[j]], -i])
+          Y_train <- data.frame(Y_train = data_df[-k_folds[[j]], i])
+          X_test <- data.frame(X_test = data_df[k_folds[[j]], -i])
+          Y_test <- data.frame(Y_test = data_df[k_folds[[j]], i])
+        } else {
+          X_train <- data_df[-k_folds[[j]], -i]
+          Y_train <- data_df[-k_folds[[j]], i]
+          X_test <- data_df[k_folds[[j]], -i]
+          Y_test <- data_df[k_folds[[j]], i]
+        }
+        X_train <- data.frame(data_df[-k_folds[[j]], -i])
+        Y_train <- data.frame(data_df[-k_folds[[j]], i])
+        X_test <- data.frame(data_df[k_folds[[j]], -i])
+        Y_test <- data.frame(data_df[k_folds[[j]], i])
         # prepare model df
         model_df <- data.frame(X_train, Y_train)
         # prepare formula
-        f <- as.formula(paste("Y_train~", paste(colnames(X_train), collapse="+")))
+        f <- as.formula(paste("Y_train ~", paste(colnames(X_train), collapse="+")))
         # call method with formula and data arguments
         fit <- do.call(method, list(formula=f, data=model_df))
         # get out of sample predictions
@@ -96,11 +131,17 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL) {
   scores <- apply(error_matrix, 1, function(x) {
     sum(x*feature_weights, na.rm=T)
   })
-  # output
-  list(scores=scores,
-       error_matrix=error_matrix,
-       rmse_mat=rmse_mat,
-       weights=feature_weights)
+
+
+  if (return_list == TRUE) {
+    # list output
+    list(scores=scores,
+         error_matrix=error_matrix,
+         rmse_mat=rmse_mat,
+         weights=feature_weights)
+  } else {
+    scores
+  }
 }
 
 nearest_neighbors <- function(data, d=NULL, ids, k) {
@@ -143,3 +184,65 @@ nearest_neighbors <- function(data, d=NULL, ids, k) {
     filter(knn %in% k)
 }
 
+pca_bag <- function(data, scale=T, n_subsets=floor(sqrt(ncol(data))),
+                            n_iterations = 50, method) {
+
+  # PCA rotated feature bagging is an ensemble-centric, unsupervised outlier detection
+  # technique for locating outliers in feature subspaces in high dimensional data. The
+  # algorithm is provided a defined number of iterations, a random subset of features
+  # is obtained and rotated via principal components analysis, and final scores are
+  # combined by summing scores from individual iterations.
+
+  # Subspace outlier detection methods work by locating outliers in locally relevant
+  # feature sets in high dimensional data.
+
+  if (missing(method)) {
+    stop("A base detector method must be specified. For example, try
+         method = function(x) mahalanobis(x, center=colMeans(x), cov=cov(x))
+         for computing the Mahalanobis distances in each iteration")
+  }
+
+  if (missing(n_iterations)) {
+    message("Message: Number of iterations defaults to 50")
+  }
+
+  if (missing(n_subsets)) {
+    message("Message: Number of features in each subsample defaults to the
+            square root of the number of columns rounded down to the nearest integer")
+  }
+
+  data_df <- if (!('data.frame' %in% class(data))) {
+    data.frame(data)
+  } else data
+
+  r <- n_subsets
+  m <- n_iterations
+
+  score_matrix <- matrix(nrow=nrow(data_df), ncol=m)
+
+  # iterate over the features m times and subset r subsets of features
+  # rotate each subsample with PCA, retaining all components
+  # score the data points with a method applied to pca rotated subsample
+  # insert subsamples scores into score matrix
+  for (i in 1:m) {
+    features_index <- sample(1:ncol(data_df), r, F)
+    data_subset <- data_df[,features_index]
+    data_subset_pca <- princomp(data_subset)$scores
+    score <- method(data_subset_pca)
+    score_matrix[,i] <- score
+  }
+
+  if (scale == TRUE) {
+    score_matrix <- scale(score_matrix)
+  } else {
+    score_matrix
+  }
+
+  combined_errors <- apply(score_matrix, 1, sum)
+
+  return(combined_errors)
+
+}
+
+pca_bag(state.x77,
+        method = function(x) {ALSO(x, method='lm', cv=F)})
