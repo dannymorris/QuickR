@@ -62,7 +62,7 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL, return_list=T, ...) {
         X <- data_df[,-i]
         Y <- data_df[, i]
       }
-      Y <- ifelse(n_cols == 2, data.frame(X=data_df[, i]), data_df[,i])
+      #Y <- ifelse(n_cols == 2, data.frame(X=data_df[, i]), data_df[,i])
       model_df <- data.frame(X,Y)
       # prepare formula
       f <- as.formula(paste("Y~", paste(colnames(X), collapse="+")))
@@ -84,8 +84,6 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL, return_list=T, ...) {
       # each observation gets out of sample prediction
       for (j in 1:length(k_folds)) {
         # prepare train and test splits
-        X <- data.frame(X=data_df[,-i])
-        Y <- data.frame(Y=data_df[, i])
         if (n_cols == 2) {
           X_train <- data.frame(X_train = data_df[-k_folds[[j]], -i])
           Y_train <- data.frame(Y_train = data_df[-k_folds[[j]], i])
@@ -97,10 +95,10 @@ ALSO <- function(data, method, cv=FALSE, folds=NULL, return_list=T, ...) {
           X_test <- data_df[k_folds[[j]], -i]
           Y_test <- data_df[k_folds[[j]], i]
         }
-        X_train <- data.frame(data_df[-k_folds[[j]], -i])
-        Y_train <- data.frame(data_df[-k_folds[[j]], i])
-        X_test <- data.frame(data_df[k_folds[[j]], -i])
-        Y_test <- data.frame(data_df[k_folds[[j]], i])
+        # X_train <- data.frame(data_df[-k_folds[[j]], -i])
+        # Y_train <- data.frame(data_df[-k_folds[[j]], i])
+        # X_test <- data.frame(data_df[k_folds[[j]], -i])
+        # Y_test <- data.frame(data_df[k_folds[[j]], i])
         # prepare model df
         model_df <- data.frame(X_train, Y_train)
         # prepare formula
@@ -244,5 +242,5 @@ pca_bag <- function(data, scale=T, n_subsets=floor(sqrt(ncol(data))),
 
 }
 
-pca_bag(state.x77,
-        method = function(x) {ALSO(x, method='lm', cv=F)})
+# pca_bag(state.x77,
+#         method = function(x) {ALSO(x, method='lm', cv=F)})
