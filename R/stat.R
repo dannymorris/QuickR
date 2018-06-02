@@ -38,26 +38,3 @@ kurtosis <- function (x, na.rm = FALSE, type = 3) {
   y
 }
 
-kurt_mahal <- function(x, n_subsamples) {
-  x <- df
-  n_subsamples <- 500
-  kurt_mat <- matrix(ncol=2, nrow=n_subsamples)
-  colnames(kurt_mat) <- c('kurtosis', 'index')
-
-  ss_var_index <- list()
-  for (i in 1:500) {
-    ss_var_index[[i]] <- sample(1:ncol(x), floor(sqrt(ncol(x))))
-  }
-
-  for (i in 1:500) {
-    vars <- ss_var_index[[i]]
-    data <- x[, vars]
-    mahal <- mahalanobis(data, center = apply(data, 2, mean), cov=cov(data))
-    kurt <- kurtosis(mahal)
-    kurt_mat[i,1] <- kurt
-    kurt_mat[i,2] <- i
-  }
-
-  kurt_mat
-}
-
