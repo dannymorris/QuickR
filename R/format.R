@@ -1,3 +1,5 @@
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 pct_round <- function(x, digits) {
   percent(round(x, digits = digits))
 }
