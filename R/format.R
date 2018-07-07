@@ -1,52 +1,48 @@
-pct_round <- function(x, digits) {
-  percent(round(x, digits = digits))
+print_sign <- function(x) {
+  ifelse(sign(x) == 1, paste0("+", x), x) %>%
+    as.character()
 }
 
-csv_sql <- function(x) {
-  paste0("'", x, "'", collapse = ",")
-}
 
-na_to_zero <- function(x) {
-  if (is.numeric(x)) {
-    ifelse(is.na(x), 0, x)
-  } else ifelse(is.na(x), '0', x)
-
-}
-
-fill_blank <- function(x, pattern) {
-  if (!is.character(x)) {
-    stop('column(s) are not of class character')
+as_percentage <- function(x, multiply = TRUE, factor = 100) {
+  if (multiply == TRUE) {
+    paste(x*100, "%")
   } else {
-    ifelse(x %in% c('', ' '), pattern, x)
+    paste(x, "%")
   }
 }
 
-add_leading_zeros <- function(x, length_out) {
-  if (nchar(x) < length_out) {
-    x_chars <- nchar(x)
-    zeros <- length_out - x_chars
-    paste0(paste0(rep('0', zeros), collapse = ""), x, collapse = "")
-  } else x
+convert <- function(x, what, to) {
+  what_index <- x %in% what
+  x[what_index] <- to
+  x
 }
 
-convert_symbol_to_na <- function(x, symbol) {
-  ifelse(x %in% symbol, NA, x)
-}
+add_leading_zeros <- function(x, output_length) {
 
-add_plus_minus_symbol <- function(x) {
-  ifelse(x > 0, paste0('+', x), x)
-}
+  # empty vector to populate with transformed values
+  result <- vector()
 
-convert_prop_to_percent <- function(x, digits, add_symbol = F) {
-  library(scales)
-  pct <- percent(round(x, digits = digits))
+  # values to ignore
+  ignored <- is.na(x)
 
-  if (add_symbol == F) {
-    pct
-  } else {
-    add_plus_minus_symbol(pct)
+  # pre-populate result with ignored values
+  result[ignored] <- x[ignored]
+
+  # function to paste zeros values
+  paste_zeros <- function(x, output_length) {
+    n_zeros <- output_length - nchar(x)
+    paste0(paste0(rep('0', n_zeros), collapse = ""), x, collapse = "")
   }
+
+  # loop through non-ignored values and add leading zero
+  for (i in 1:length(x[!ignored])) {
+    result[!ignored][i] <- paste_zeros(x = x[!ignored][i], output_length = output_length)
+  }
+
+  return(result)
 }
+
 
 add_increment_to_values <- function(x, reference = "max", adjust=20) {
   mc <- match.call()
@@ -55,3 +51,59 @@ add_increment_to_values <- function(x, reference = "max", adjust=20) {
   mc[[2]] <- x
   x + max(x)/adjust
 }
+
+print_pca <- function(x, n_components = ncol(x$scores), var_explained = 1) {
+
+  if (class(x) != "princomp")
+    stop("class(x) must be princomp")
+
+    # eigenvalues
+  eigs <- x$sdev^2
+
+  # variance explained
+  explained <- eigs / sum(eigs)
+
+  tibble::tibble(component = 1:length(eigs),
+                 eigen_values = eigs,
+                 explained,
+                 total_explained = cumsum(explained)) %>%
+    filter(component <= n_components) %>%
+    filter(total_explained <= var_explained)
+}
+
+plot_pca <- function(x, n_components = 2, var_explained = 1, ...) {
+
+  if (class(x) != "princomp")
+    stop("class(x) must be princomp")
+
+  comp_details <- print_pca(x)
+
+  scores <- x$scores[, 1:n_components]
+
+  comp_grid <- tibble(x = as.integer(seq(1, n_components - 1, 1)),
+                      y = as.integer(seq(2, n_components, 1)))
+
+  filter_details <- comp_details %>%
+    filter(component %in% 1:n_components) %>%
+    pull(explained) %>%
+    round(3) %>%
+    as_percentage()
+
+
+
+  for (i in 1:nrow(comp_grid)) {
+    with(comp_grid[i, ],
+         plot(scores[, y] ~ scores[, x],
+              xlab = "", ylab = "",
+              #main = paste("X = PCA", x, ", Y = PCA", y),
+              main = paste0("PCA ", x, " (x): ", filter_details[i],
+                            "\nPCA ", y, " (y)"),
+              cex.main = 0.9),
+         title(paste0("PCA ", x, " (x): ", filter_details[i],
+                      "\nPCA ", y, " (y)"), line = -1)
+    )
+
+  }
+
+}
+
