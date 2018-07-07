@@ -3,6 +3,12 @@ print_sign <- function(x) {
     as.character()
 }
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+pct_round <- function(x, digits) {
+  percent(round(x, digits = digits))
+}
+
 
 as_percentage <- function(x, multiply = TRUE, factor = 100) {
   if (multiply == TRUE) {
